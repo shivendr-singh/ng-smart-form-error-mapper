@@ -10,7 +10,7 @@ export class FormErrorService {
    * Returns the first human-readable error message for the given control,
    * or null if the control is valid / untouched.
    *
-   * @param control   The AbstractControl to inspect
+   * @param control          The AbstractControl to inspect
    * @param onlyWhenTouched  Default true — suppresses messages until blurred
    */
   getError(control: AbstractControl, onlyWhenTouched = true): string | null {
@@ -20,7 +20,7 @@ export class FormErrorService {
     for (const key of Object.keys(control.errors)) {
       const msg = this.errorMap[key];
       if (msg == null) {
-        // Fallback: show raw validator key so devs notice unmapped errors
+        // Fallback: surface unmapped validator keys so devs notice them
         return `Validation error: ${key}`;
       }
       const params = control.errors[key];
@@ -32,7 +32,7 @@ export class FormErrorService {
   }
 
   /**
-   * Returns ALL active error messages (useful for verbose UIs).
+   * Returns ALL active error messages (useful for verbose / password-strength UIs).
    */
   getAllErrors(control: AbstractControl, onlyWhenTouched = true): string[] {
     if (!control.errors) return [];

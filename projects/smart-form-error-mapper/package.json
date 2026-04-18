@@ -1,0 +1,27 @@
+{
+  "name": "smart-form-error-mapper",
+  "version": "1.0.0",
+  "description": "Centralized, plug-and-play Angular form validation messages with i18n support",
+  "keywords": [
+    "angular",
+    "forms",
+    "validation",
+    "error-messages",
+    "i18n",
+    "reactive-forms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourname/smart-form-error-mapper"
+  },
+  "homepage": "https://yourname.github.io/smart-form-error-mapper/",
+  "bugs": "https://github.com/yourname/smart-form-error-mapper/issues",
+  "sideEffects": false,
+  "peerDependencies": {
+    "@angular/common": ">=17.0.0",
+    "@angular/core": ">=17.0.0",
+    "@angular/forms": ">=17.0.0"
+  }
+}

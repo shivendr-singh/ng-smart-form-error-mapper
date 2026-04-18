@@ -11,21 +11,21 @@ import {
 } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { NgFor, NgIf } from '@angular/common';
 import { FormErrorService } from './form-error.service';
-import { NgIf } from '@angular/common';
 
 /**
  * Optional component alternative to the directive.
- * Use when you need more control over placement / styling.
+ * Use when you need explicit placement or showAll mode.
  *
  * Usage:
  *   <form-error [control]="form.get('email')" />
- *   <form-error [control]="form.get('email')" [showAll]="true" />
+ *   <form-error [control]="form.get('password')" [showAll]="true" />
  */
 @Component({
   selector: 'form-error',
   standalone: true,
-  imports: [NgIf],
+  imports: [NgIf, NgFor],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-container *ngIf="messages.length">
@@ -80,6 +80,7 @@ export class FormErrorComponent implements OnInit, OnChanges, OnDestroy {
 
   private subscribe(): void {
     if (!this.control) return;
+
     const update = () => {
       this.messages = this.showAll
         ? this.svc.getAllErrors(this.control!, this.onlyWhenTouched)
@@ -89,6 +90,7 @@ export class FormErrorComponent implements OnInit, OnChanges, OnDestroy {
           })();
       this.cdr.markForCheck();
     };
+
     this.subs.add(this.control.statusChanges?.subscribe(update));
     this.subs.add(this.control.valueChanges?.subscribe(update));
     update();
