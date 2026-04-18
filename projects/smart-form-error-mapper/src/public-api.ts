@@ -1,5 +1,5 @@
 /*
- * Public API Surface of smart-form-error-mapper
+ * Public API Surface of ng-smart-form-error-mapper
  */
 export { FORM_ERRORS, DEFAULT_ERRORS }  from './lib/form-errors.token';
 export type { ErrorMessages, ErrorMessageFn } from './lib/form-errors.token';

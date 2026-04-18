@@ -19,7 +19,7 @@
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
     "paths": {
-      "smart-form-error-mapper": ["dist/smart-form-error-mapper"]
+      "ng-smart-form-error-mapper": ["dist/ng-smart-form-error-mapper"]
     }
   },
   "angularCompilerOptions": {

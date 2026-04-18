@@ -3,5 +3,5 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "dest": "../../dist/smart-form-error-mapper"
+  "dest": "../../dist/ng-smart-form-error-mapper"
 }
