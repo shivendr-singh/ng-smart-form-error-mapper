@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>smart-form-error-mapper</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--surface:#141720;--surface2:#1c1f2d;
+  --border:#252836;--border2:#2e3245;
+  --accent:#7c6af7;--accent2:#f7a26a;--accent3:#5eead4;
+  --text:#e8e9f3;--muted:#6b7090;--muted2:#4a4f6b;
+  --error:#f56565;--success:#48bb78;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:3rem 1rem 6rem}
+.page{max-width:740px;margin:0 auto}
+
+/* ── Header ── */
+header{margin-bottom:3rem;padding-bottom:2rem;border-bottom:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:0.4rem;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.25);padding:.25rem .65rem;border-radius:20px;margin-bottom:.9rem}
+.badge::before{content:'●';font-size:.55rem;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+h1{font-size:clamp(2.2rem,5.5vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.05;background:linear-gradient(135deg,#fff 25%,var(--accent) 65%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.6rem}
+.tagline{color:var(--muted);font-size:.95rem;line-height:1.6;max-width:500px}
+.code-pill{font-family:'DM Mono',monospace;font-size:.78em;color:var(--accent2);background:rgba(247,162,106,.1);padding:.1em .4em;border-radius:4px;white-space:nowrap}
+
+/* ── Layout ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:600px){.split{grid-template-columns:1fr}}
+
+/* ── Card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;position:relative;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));opacity:.55}
+.card-full{grid-column:1/-1}
+.card h2{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--accent);border-radius:50%;font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0}
+.hint{color:var(--muted);font-size:.8rem;line-height:1.55;margin-bottom:1.3rem}
+
+/* ── Fields ── */
+.field{margin-bottom:1.1rem}
+label{display:block;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.req{color:var(--accent2)}
+input,textarea,select{
+  width:100%;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;
+  padding:.65rem .85rem;color:var(--text);font-family:'Syne',sans-serif;font-size:.9rem;
+  transition:border-color .2s,box-shadow .2s;outline:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.15)}
+input.error-active,textarea.error-active{border-color:var(--error);box-shadow:0 0 0 3px rgba(245,101,101,.1)}
+input.valid-active{border-color:var(--success);box-shadow:0 0 0 3px rgba(72,187,120,.08)}
+input::placeholder,textarea::placeholder{color:var(--muted2)}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--surface)}
+
+.form-error{
+  display:block;font-family:'DM Mono',monospace;font-size:.72rem;
+  color:var(--error);margin-top:.35rem;padding-left:.1rem;
+  animation:errIn .15s ease;
+}
+@keyframes errIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.form-valid{display:block;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--success);margin-top:.35rem;padding-left:.1rem}
+
+/* ── Config panel ── */
+.config-panel{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem}
+.config-panel h3{font-size:.85rem;font-weight:700;color:var(--accent2);margin-bottom:1rem;letter-spacing:.05em;text-transform:uppercase;font-family:'DM Mono',monospace}
+.config-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.config-row:last-child{border-bottom:none}
+.config-label{font-size:.82rem;color:var(--muted)}
+.toggle{position:relative;width:38px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:var(--border2);border-radius:20px;transition:.3s}
+.slider::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked + .slider{background:var(--accent)}
+.toggle input:checked + .slider::before{transform:translateX(18px)}
+
+/* ── Code block ── */
+.code-block{background:#0a0c10;border:1px solid var(--border);border-radius:10px;padding:1.25rem;font-family:'DM Mono',monospace;font-size:.78rem;line-height:1.7;color:#a8aecf;overflow-x:auto;margin-bottom:1.25rem}
+.code-block .kw{color:#c792ea}
+.code-block .fn{color:#82aaff}
+.code-block .str{color:#c3e88d}
+.code-block .cm{color:#546e7a;font-style:italic}
+.code-block .nm{color:var(--accent2)}
+.code-block .op{color:var(--accent)}
+
+/* ── Actions ── */
+.actions{display:flex;gap:.75rem;justify-content:flex-end;flex-wrap:wrap;margin-top:1.5rem}
+.btn,.btn-ghost{padding:.65rem 1.4rem;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s;border:none;letter-spacing:.02em}
+.btn{background:linear-gradient(135deg,var(--accent),#9b87f5);color:#fff}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
+
+/* ── Status ── */
+.status-bar{margin-top:1rem;padding:.9rem 1.1rem;border-radius:9px;font-size:.88rem;font-weight:600;text-align:center;opacity:0;transition:opacity .3s}
+.status-bar.visible{opacity:1}
+.status-bar.ok{background:rgba(72,187,120,.08);color:var(--success);border:1px solid rgba(72,187,120,.2)}
+.status-bar.fail{background:rgba(245,101,101,.06);color:var(--error);border:1px solid rgba(245,101,101,.18)}
+
+/* ── Error map preview ── */
+.error-map{display:grid;gap:.5rem}
+.em-row{display:flex;align-items:flex-start;gap:.75rem;padding:.6rem .75rem;background:var(--bg);border:1px solid var(--border);border-radius:7px;font-size:.78rem}
+.em-key{font-family:'DM Mono',monospace;color:var(--accent);font-weight:500;min-width:90px;flex-shrink:0}
+.em-msg{color:var(--muted);font-style:italic;line-height:1.5}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:1.5rem;width:fit-content}
+.tab{padding:.4rem .9rem;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:'Syne',sans-serif;transition:all .2s}
+.tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+
+/* ── Progress ── */
+.progress-ring{display:flex;align-items:center;gap:.85rem;padding:.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem}
+.pr-label{font-size:.8rem;color:var(--muted)}
+.pr-bar{flex:1;height:4px;background:var(--border2);border-radius:4px;overflow:hidden}
+.pr-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .4s ease;width:0%}
+.pr-pct{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--accent);min-width:30px;text-align:right}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="badge">Angular Library · v1.0.0</div>
+    <h1>smart-form-error-mapper</h1>
+    <p class="tagline">
+      Centralized validator → message config. One attribute on any input. 
+      Full i18n support. Zero repeated error boilerplate.
+    </p>
+  </header>
+
+  <!-- Global config preview -->
+  <div class="card" style="margin-bottom:1.25rem">
+    <h2>⚙ Global Error Message Config</h2>
+    <p class="hint">Registered once in <span class="code-pill">app.config.ts</span> via <span class="code-pill">provideFormErrors()</span> — applies everywhere automatically.</p>
+    <div class="error-map" id="errorMap"></div>
+  </div>
+
+  <!-- Runtime toggles -->
+  <div class="config-panel">
+    <h3>// Runtime Options</h3>
+    <div class="config-row">
+      <span class="config-label"><span class="code-pill">[errorOnDirty]</span> — show errors while typing</span>
+      <label class="toggle"><input type="checkbox" id="toggleDirty" /><span class="slider"></span></label>
+    </div>
+    <div class="config-row">
+      <span class="config-label"><span class="code-pill">[showAll]</span> — show all failing validators at once</span>
+      <label class="toggle"><input type="checkbox" id="toggleAll" /><span class="slider"></span></label>
+    </div>
+    <div class="config-row">
+      <span class="config-label">Language / locale</span>
+      <select id="langSelect" style="width:auto;padding:.3rem .6rem;font-size:.8rem">
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="hi">🇮🇳 हिंदी</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Form completion progress -->
+  <div class="progress-ring">
+    <span class="pr-label">Form completion</span>
+    <div class="pr-bar"><div class="pr-fill" id="prFill"></div></div>
+    <span class="pr-pct" id="prPct">0%</span>
+  </div>
+
+  <!-- Demo form -->
+  <form id="demoForm" novalidate>
+
+    <div class="split">
+      <!-- Col 1: directive examples -->
+      <div class="card">
+        <h2><span class="num">①</span> Directive: <span class="code-pill">appError</span></h2>
+        <p class="hint">One attribute — error auto-injected on blur.</p>
+
+        <div class="field">
+          <label>Full Name <span class="req">*</span></label>
+          <input id="f-name" type="text" placeholder="Jane Doe" />
+          <span class="form-error" id="e-name"></span>
+        </div>
+
+        <div class="field">
+          <label>Email <span class="req">*</span></label>
+          <input id="f-email" type="email" placeholder="you@example.com" />
+          <span class="form-error" id="e-email"></span>
+        </div>
+
+        <div class="field">
+          <label>Age <span class="req">*</span></label>
+          <input id="f-age" type="number" placeholder="18 – 99" />
+          <span class="form-error" id="e-age"></span>
+        </div>
+      </div>
+
+      <!-- Col 2: component + custom validator -->
+      <div class="card">
+        <h2><span class="num">②</span> Component: <span class="code-pill">&lt;form-error&gt;</span></h2>
+        <p class="hint">Explicit placement + custom validator key.</p>
+
+        <div class="field">
+          <label>Username <span class="req">*</span></label>
+          <input id="f-user" type="text" placeholder="4 – 20 chars" />
+          <span class="form-error" id="e-user"></span>
+        </div>
+
+        <div class="field">
+          <label>Password <span class="req">*</span></label>
+          <input id="f-pass" type="password" placeholder="Upper + number + symbol" />
+          <span class="form-error" id="e-pass"></span>
+        </div>
+
+        <div class="field">
+          <label>Confirm Password <span class="req">*</span></label>
+          <input id="f-pass2" type="password" placeholder="Repeat password" />
+          <span class="form-error" id="e-pass2"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width: instant feedback -->
+    <div class="card card-full" style="margin-bottom:1.25rem">
+      <h2><span class="num">③</span> Instant feedback: <span class="code-pill">[errorOnDirty]="true"</span></h2>
+      <p class="hint">Toggle <b>[errorOnDirty]</b> above to see errors appear as you type rather than after blur.</p>
+
+      <div class="split" style="margin-bottom:0">
+        <div class="field" style="margin-bottom:0">
+          <label>Bio <span class="req">*</span></label>
+          <textarea id="f-bio" placeholder="10 – 200 characters…" rows="3"></textarea>
+          <span class="form-error" id="e-bio"></span>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Website</label>
+          <input id="f-url" type="text" placeholder="https://example.com" />
+          <span class="form-error" id="e-url"></span>
+          <span id="v-url" class="form-valid" style="display:none">✓ Valid URL</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-ghost" onclick="resetForm()">↺ Reset</button>
+      <button type="button" class="btn-ghost" onclick="touchAll()">Show All Errors</button>
+      <button type="submit" class="btn">Submit →</button>
+    </div>
+
+    <div class="status-bar" id="statusBar"></div>
+  </form>
+
+  <!-- Code snippet -->
+  <div style="margin-top:2.5rem">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('usage')">Usage</button>
+      <button class="tab" onclick="showTab('config')">Config</button>
+      <button class="tab" onclick="showTab('i18n')">i18n</button>
+    </div>
+
+    <div id="tab-usage" class="code-block">
+<span class="cm">// app.component.ts — import once</span>
+<span class="kw">import</span> { <span class="nm">AppErrorDirective</span>, <span class="nm">FormErrorComponent</span> } <span class="kw">from</span> <span class="str">'smart-form-error-mapper'</span>;
+
+<span class="cm">// template — one attribute replaces all ngIf error boilerplate</span>
+&lt;<span class="fn">input</span> <span class="nm">formControlName</span>=<span class="str">"email"</span> <span class="op">appError</span> /&gt;
+
+<span class="cm">// show errors while typing (not just on blur)</span>
+&lt;<span class="fn">input</span> <span class="nm">formControlName</span>=<span class="str">"bio"</span> <span class="op">appError</span> [<span class="nm">errorOnDirty</span>]=<span class="str">"true"</span> /&gt;
+
+<span class="cm">// explicit placement with &lt;form-error&gt; component</span>
+&lt;<span class="fn">input</span> <span class="nm">formControlName</span>=<span class="str">"password"</span> /&gt;
+&lt;<span class="fn">form-error</span> [<span class="nm">control</span>]=<span class="str">"form.get('password')"</span> [<span class="nm">showAll</span>]=<span class="str">"true"</span> /&gt;
+    </div>
+
+    <div id="tab-config" class="code-block" style="display:none">
+<span class="cm">// app.config.ts</span>
+<span class="kw">import</span> { <span class="nm">provideFormErrors</span> } <span class="kw">from</span> <span class="str">'smart-form-error-mapper'</span>;
+
+<span class="kw">export const</span> <span class="nm">appConfig</span>: <span class="fn">ApplicationConfig</span> = {
+  providers: [
+    <span class="fn">provideFormErrors</span>({
+      required:         () =&gt; <span class="str">'This field is required.'</span>,
+      email:            () =&gt; <span class="str">'Enter a valid email.'</span>,
+      minlength:        (p) =&gt; <span class="str">`Min <span class="nm">${p.requiredLength}</span> characters.`</span>,
+      maxlength:        (p) =&gt; <span class="str">`Max <span class="nm">${p.requiredLength}</span> characters.`</span>,
+      min:              (p) =&gt; <span class="str">`Value must be ≥ <span class="nm">${p.min}</span>.`</span>,
+      max:              (p) =&gt; <span class="str">`Value must be ≤ <span class="nm">${p.max}</span>.`</span>,
+      <span class="cm">// custom validator key:</span>
+      passwordStrength: () =&gt; <span class="str">'Needs uppercase, number &amp; symbol.'</span>,
+    }),
+  ],
+};
+    </div>
+
+    <div id="tab-i18n" class="code-block" style="display:none">
+<span class="cm">// Works with any i18n library — example with ngx-translate</span>
+<span class="kw">import</span> { <span class="nm">FORM_ERRORS</span> } <span class="kw">from</span> <span class="str">'smart-form-error-mapper'</span>;
+<span class="kw">import</span> { <span class="nm">TranslateService</span> } <span class="kw">from</span> <span class="str">'@ngx-translate/core'</span>;
+
+{
+  provide: <span class="nm">FORM_ERRORS</span>,
+  useFactory: (<span class="nm">t</span>: <span class="fn">TranslateService</span>) =&gt; ({
+    required:  () =&gt; t.<span class="fn">instant</span>(<span class="str">'validation.required'</span>),
+    minlength: (p) =&gt; t.<span class="fn">instant</span>(<span class="str">'validation.minlength'</span>, p),
+    email:     () =&gt; t.<span class="fn">instant</span>(<span class="str">'validation.email'</span>),
+  }),
+  deps: [<span class="nm">TranslateService</span>],
+}
+
+<span class="cm">// en.json / es.json / fr.json / hi.json etc.</span>
+{
+  <span class="str">"validation"</span>: {
+    <span class="str">"required"</span>: <span class="str">"Ce champ est obligatoire."</span>,
+    <span class="str">"email"</span>:    <span class="str">"Adresse e-mail invalide."</span>,
+    <span class="str">"minlength"</span>: <span class="str">"Minimum {{requiredLength}} caractères."</span>
+  }
+}
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ─── Error messages by locale ───────────────────────────────────────────────
+const MESSAGES = {
+  en: {
+    required:        () => '⚠ This field is required.',
+    email:           () => '✉ Enter a valid email address.',
+    minlength:       (p) => `🔡 Minimum ${p.required} characters (you typed ${p.actual}).`,
+    maxlength:       (p) => `✂ Maximum ${p.required} characters (you typed ${p.actual}).`,
+    min:             (p) => `📉 Value must be at least ${p.min}.`,
+    max:             (p) => `📈 Value must be at most ${p.max}.`,
+    pattern:         () => '🔤 Doesn\'t match required format.',
+    passwordStrength:() => '🔒 Needs uppercase, a number & a symbol.',
+    passwordMatch:   () => '🔑 Passwords do not match.',
+    urlFormat:       () => '🔗 Enter a valid URL (https://…).',
+  },
+  es: {
+    required:        () => '⚠ Este campo es obligatorio.',
+    email:           () => '✉ Introduce un correo válido.',
+    minlength:       (p) => `🔡 Mínimo ${p.required} caracteres (escribiste ${p.actual}).`,
+    maxlength:       (p) => `✂ Máximo ${p.required} caracteres.`,
+    min:             (p) => `📉 El valor mínimo es ${p.min}.`,
+    max:             (p) => `📈 El valor máximo es ${p.max}.`,
+    passwordStrength:() => '🔒 Necesita mayúscula, número y símbolo.',
+    passwordMatch:   () => '🔑 Las contraseñas no coinciden.',
+    urlFormat:       () => '🔗 Introduce una URL válida (https://…).',
+  },
+  fr: {
+    required:        () => '⚠ Ce champ est obligatoire.',
+    email:           () => '✉ Adresse e-mail invalide.',
+    minlength:       (p) => `🔡 Minimum ${p.required} caractères (vous avez tapé ${p.actual}).`,
+    maxlength:       (p) => `✂ Maximum ${p.required} caractères.`,
+    min:             (p) => `📉 La valeur minimale est ${p.min}.`,
+    max:             (p) => `📈 La valeur maximale est ${p.max}.`,
+    passwordStrength:() => '🔒 Doit contenir majuscule, chiffre et symbole.',
+    passwordMatch:   () => '🔑 Les mots de passe ne correspondent pas.',
+    urlFormat:       () => '🔗 Entrez une URL valide (https://…).',
+  },
+  hi: {
+    required:        () => '⚠ यह फ़ील्ड आवश्यक है।',
+    email:           () => '✉ वैध ईमेल पता दर्ज करें।',
+    minlength:       (p) => `🔡 न्यूनतम ${p.required} अक्षर चाहिए (आपने ${p.actual} टाइप किए)।`,
+    maxlength:       (p) => `✂ अधिकतम ${p.required} अक्षर।`,
+    min:             (p) => `📉 न्यूनतम मान ${p.min} है।`,
+    max:             (p) => `📈 अधिकतम मान ${p.max} है।`,
+    passwordStrength:() => '🔒 बड़े अक्षर, संख्या और चिह्न आवश्यक।',
+    passwordMatch:   () => '🔑 पासवर्ड मेल नहीं खाते।',
+    urlFormat:       () => '🔗 वैध URL दर्ज करें (https://…)।',
+  }
+};
+
+let currentLang = 'en';
+let errorOnDirty = false;
+let showAll = false;
+
+// ─── Validators ─────────────────────────────────────────────────────────────
+const validators = {
+  'f-name':  [
+    { key:'required',  test: v => v.trim() === '' }
+  ],
+  'f-email': [
+    { key:'required',  test: v => v.trim() === '' },
+    { key:'email',     test: v => v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) }
+  ],
+  'f-age':   [
+    { key:'required',  test: v => v.trim() === '' },
+    { key:'min',       test: v => v && +v < 18, params: { min: 18 } },
+    { key:'max',       test: v => v && +v > 99, params: { max: 99 } }
+  ],
+  'f-user':  [
+    { key:'required',  test: v => v.trim() === '' },
+    { key:'minlength', test: v => v && v.length < 4,  params: { required: 4,  actual: () => document.getElementById('f-user').value.length } },
+    { key:'maxlength', test: v => v && v.length > 20, params: { required: 20, actual: () => document.getElementById('f-user').value.length } }
+  ],
+  'f-pass':  [
+    { key:'required',  test: v => v.trim() === '' },
+    { key:'minlength', test: v => v && v.length < 8,  params: { required: 8, actual: () => document.getElementById('f-pass').value.length } },
+    { key:'passwordStrength', test: v => v && !(/[A-Z]/.test(v) && /[0-9]/.test(v) && /[^a-zA-Z0-9]/.test(v)) }
+  ],
+  'f-pass2': [
+    { key:'required',     test: v => v.trim() === '' },
+    { key:'passwordMatch', test: v => v && v !== document.getElementById('f-pass').value }
+  ],
+  'f-bio':   [
+    { key:'required',  test: v => v.trim() === '' },
+    { key:'minlength', test: v => v && v.length < 10,  params: { required: 10,  actual: () => document.getElementById('f-bio').value.length } },
+    { key:'maxlength', test: v => v && v.length > 200, params: { required: 200, actual: () => document.getElementById('f-bio').value.length } }
+  ],
+  'f-url':   [
+    { key:'urlFormat', test: v => v && !/^https?:\/\/.+\..+/.test(v) }
+  ]
+};
+
+const touched = {};
+
+function getErrors(id) {
+  const el = document.getElementById(id);
+  const v = el.value;
+  return validators[id]
+    .filter(r => r.test(v))
+    .map(r => {
+      const params = r.params ? Object.fromEntries(
+        Object.entries(r.params).map(([k, fn]) => [k, typeof fn === 'function' ? fn() : fn])
+      ) : undefined;
+      const m = MESSAGES[currentLang][r.key];
+      return m ? m(params) : `Validation error: ${r.key}`;
+    });
+}
+
+function showErrors(id, force = false) {
+  const el = document.getElementById(id);
+  const errEl = document.getElementById('e-' + id.replace('f-', ''));
+  if (!errEl) return;
+
+  const shouldShow = force || touched[id] || errorOnDirty;
+  if (!shouldShow) { errEl.textContent = ''; el.classList.remove('error-active','valid-active'); return; }
+
+  const errs = getErrors(id);
+  const msg = showAll ? errs.join(' · ') : (errs[0] || '');
+  errEl.textContent = msg;
+
+  if (id === 'f-url') {
+    const vEl = document.getElementById('v-url');
+    vEl.style.display = (el.value && !msg) ? 'block' : 'none';
+  }
+
+  if (msg) { el.classList.add('error-active'); el.classList.remove('valid-active'); }
+  else if (el.value) { el.classList.remove('error-active'); el.classList.add('valid-active'); }
+  else { el.classList.remove('error-active','valid-active'); }
+}
+
+function updateProgress() {
+  const ids = Object.keys(validators);
+  const valid = ids.filter(id => getErrors(id).length === 0 && document.getElementById(id).value).length;
+  const pct = Math.round((valid / ids.length) * 100);
+  document.getElementById('prFill').style.width = pct + '%';
+  document.getElementById('prPct').textContent = pct + '%';
+}
+
+// Attach listeners
+Object.keys(validators).forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('blur', () => { touched[id] = true; showErrors(id); });
+  el.addEventListener('input', () => { showErrors(id); updateProgress(); });
+});
+
+function touchAll() {
+  Object.keys(validators).forEach(id => { touched[id] = true; showErrors(id, true); });
+  updateProgress();
+}
+
+function resetForm() {
+  Object.keys(validators).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('error-active','valid-active'); }
+    const errEl = document.getElementById('e-' + id.replace('f-',''));
+    if (errEl) errEl.textContent = '';
+    delete touched[id];
+  });
+  document.getElementById('v-url').style.display = 'none';
+  document.getElementById('statusBar').className = 'status-bar';
+  updateProgress();
+}
+
+document.getElementById('demoForm').addEventListener('submit', e => {
+  e.preventDefault();
+  touchAll();
+  const allValid = Object.keys(validators).every(id => getErrors(id).length === 0);
+  const bar = document.getElementById('statusBar');
+  bar.className = 'status-bar visible ' + (allValid ? 'ok' : 'fail');
+  bar.textContent = allValid ? '✅ All fields valid — form submitted!' : '❌ Please fix the highlighted errors above.';
+  setTimeout(() => bar.classList.remove('visible'), 4000);
+});
+
+document.getElementById('toggleDirty').addEventListener('change', e => {
+  errorOnDirty = e.target.checked;
+  Object.keys(validators).forEach(id => showErrors(id));
+});
+
+document.getElementById('toggleAll').addEventListener('change', e => {
+  showAll = e.target.checked;
+  Object.keys(validators).forEach(id => showErrors(id, touched[id]));
+});
+
+document.getElementById('langSelect').addEventListener('change', e => {
+  currentLang = e.target.value;
+  renderErrorMap();
+  Object.keys(validators).forEach(id => showErrors(id, touched[id]));
+});
+
+// ─── Error map preview ───────────────────────────────────────────────────────
+function renderErrorMap() {
+  const msgs = MESSAGES[currentLang];
+  const exampleParams = {
+    minlength: { required: 8, actual: 3 },
+    maxlength: { required: 20, actual: 25 },
+    min: { min: 18 }, max: { max: 99 }
+  };
+  const keys = ['required','email','minlength','maxlength','min','max','passwordStrength','urlFormat'];
+  document.getElementById('errorMap').innerHTML = keys.map(k => {
+    if (!msgs[k]) return '';
+    const msg = msgs[k](exampleParams[k]);
+    return `<div class="em-row"><span class="em-key">${k}</span><span class="em-msg">${msg}</span></div>`;
+  }).join('');
+}
+renderErrorMap();
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+function showTab(name) {
+  ['usage','config','i18n'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', ['usage','config','i18n'][i] === name);
+  });
+}
+</script>
+</body>
+</html>
