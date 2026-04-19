@@ -1,0 +1,80 @@
+<main class="page">
+  <header>
+    <span class="badge">Angular Library</span>
+    <h1>Smart Form Error Mapper</h1>
+    <p class="subtitle">Zero-boilerplate, centralized validation messages</p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+    <!-- ① Directive approach -->
+    <section class="card">
+      <h2><span class="num">①</span> Directive: <code>appError</code></h2>
+      <p class="hint">Add <code>appError</code> to any input — error span injected automatically on blur.</p>
+
+      <div class="field">
+        <label for="name">Full Name <span class="req">*</span></label>
+        <input id="name" formControlName="name" placeholder="Jane Doe" appError />
+      </div>
+
+      <div class="field">
+        <label for="email">Email <span class="req">*</span></label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" appError />
+      </div>
+
+      <div class="field">
+        <label for="age">Age <span class="req">*</span></label>
+        <input id="age" type="number" formControlName="age" placeholder="18–99" appError />
+      </div>
+    </section>
+
+    <!-- ② Component approach -->
+    <section class="card">
+      <h2><span class="num">②</span> Component: <code>&lt;form-error&gt;</code></h2>
+      <p class="hint">Explicit placement — useful when input and error live in different DOM nodes.</p>
+
+      <div class="field">
+        <label for="username">Username <span class="req">*</span></label>
+        <input id="username" formControlName="username" placeholder="4–20 chars" />
+        <form-error [control]="form.get('username')" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password <span class="req">*</span></label>
+        <input id="password" type="password" formControlName="password" placeholder="Upper + number + symbol" />
+        <!-- showAll displays every failing validator simultaneously -->
+        <form-error [control]="form.get('password')" [showAll]="true" />
+      </div>
+
+      <div class="field">
+        <label for="confirm">Confirm Password <span class="req">*</span></label>
+        <input id="confirm" type="password" formControlName="confirm" placeholder="Repeat password" />
+        <form-error [control]="form.get('confirm')" />
+      </div>
+    </section>
+
+    <!-- ③ Instant feedback -->
+    <section class="card">
+      <h2><span class="num">③</span> Instant feedback: <code>[errorOnDirty]="true"</code></h2>
+      <p class="hint">Errors appear as you type — no need to blur first.</p>
+
+      <div class="field">
+        <label for="bio">Bio <span class="req">*</span></label>
+        <textarea id="bio" formControlName="bio" placeholder="10–200 characters…" rows="3"
+          appError [errorOnDirty]="true">
+        </textarea>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="btn-ghost" (click)="reset()">↺ Reset</button>
+      <button type="button" class="btn-ghost" (click)="touchAll()">Show All Errors</button>
+      <button type="submit" class="btn-primary">Submit →</button>
+    </div>
+
+    <div *ngIf="submitted" class="status" [class.success]="form.valid" [class.error]="!form.valid">
+      {{ form.valid ? '✅ Form submitted successfully!' : '❌ Please fix the errors above.' }}
+    </div>
+
+  </form>
+</main>

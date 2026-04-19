@@ -1,5 +1,5 @@
 {
-  "name": "smart-form-error-mapper",
+  "name": "ng-smart-form-error-mapper",
   "version": "1.0.0",
   "description": "Centralized, plug-and-play Angular form validation messages with i18n support",
   "keywords": [
@@ -14,10 +14,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/smart-form-error-mapper"
+    "url": "https://github.com/yourname/ng-smart-form-error-mapper"
   },
-  "homepage": "https://yourname.github.io/smart-form-error-mapper/",
-  "bugs": "https://github.com/yourname/smart-form-error-mapper/issues",
+  "homepage": "https://yourname.github.io/ng-smart-form-error-mapper/",
+  "bugs": "https://github.com/yourname/ng-smart-form-error-mapper/issues",
   "sideEffects": false,
   "peerDependencies": {
     "@angular/common": ">=17.0.0",
