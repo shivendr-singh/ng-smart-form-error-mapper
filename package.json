@@ -1,7 +1,7 @@
 {
   "name": "ng-smart-form-error-mapper",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "build":         "ng-packagr -p projects/ng-smart-form-error-mapper/ng-package.json",
     "build:watch":   "ng-packagr -p projects/ng-smart-form-error-mapper/ng-package.json --watch",
